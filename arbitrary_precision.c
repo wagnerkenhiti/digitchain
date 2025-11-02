@@ -31,14 +31,19 @@ void FreeLL(headerNodeDigits *head) {
   return;
 }
 
-void printRecursively(singleDigit *node){
-  if(node == NULL){
-    return;
+
+singleDigit *reverseList(singleDigit *firstNode){
+  singleDigit *prev = NULL;
+  singleDigit *current = firstNode;
+  singleDigit *next = NULL;
+
+  while(current != NULL){
+    next = current->nextNode;
+    current->nextNode=prev;
+    prev=current;
+    current=next;
   }
-  else{
-    printRecursively(node->nextNode);
-    printf("%d",node->value);
-  }
+  return prev;
 }
 
 void printValues(headerNodeDigits *head) {
@@ -53,7 +58,13 @@ void printValues(headerNodeDigits *head) {
       }
     }
     else if(head->type == stack){
-      printRecursively(node);
+      singleDigit *tmp=reverseList(node);
+      singleDigit *var=tmp;
+      while(var!=NULL){
+        printf("%d",var->value);
+        var=var->nextNode;
+      }
+      head->firstNode=reverseList(tmp);
     }
   }
 }
@@ -143,7 +154,7 @@ int main() {
     int value = 0;
     while (value >= 0) {
       printf("Input the digit [0-9] of the %dst value (<0 to exit): ",i+1);
-      scanf("%hd", &value);
+      scanf("%d", &value);
       if (value >= 0 && value < 10) {
         createNode(listOfHeaders[i], value);
       } else if (value > 9) {
