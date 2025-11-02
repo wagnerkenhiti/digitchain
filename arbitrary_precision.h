@@ -3,16 +3,24 @@
 
 typedef struct singleDigit{
     struct singleDigit* nextNode;
-    short int value;
+    int value;
 } singleDigit;
 
+typedef enum {
+    queue,
+    stack
+} Type;
+
 typedef struct headerNodeDigits{
-    unsigned int length;
-    singleDigit* firstValue;
+    int length;
+    singleDigit* firstNode;
+    Type type;   
 } headerNodeDigits;
 
-headerNodeDigits* createLL();
-void FreeLL(headerNodeDigits* head);
-void printValues(headerNodeDigits* head);
-
+headerNodeDigits *createDataStructure(Type);
+void FreeLL(headerNodeDigits*);
+void printValues(headerNodeDigits*);
+void createNode(headerNodeDigits*, int);
+singleDigit *createNodeFrom2Digits(singleDigit*, singleDigit*, int*, singleDigit*);
+headerNodeDigits *sumValuesFromHeaders(headerNodeDigits*, headerNodeDigits*);
 #endif

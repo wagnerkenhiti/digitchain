@@ -1,111 +1,172 @@
+#include "arbitrary_precision.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct singleDigit{
-    struct singleDigit* nextNode;
-    short int value;
-} singleDigit;
-
-typedef struct headerNodeDigits{
-    unsigned int length;
-    singleDigit* firstValue;
-} headerNodeDigits;
-
-headerNodeDigits* createLL(){
-    headerNodeDigits* temporary = (headerNodeDigits*) malloc(sizeof(headerNodeDigits));
-    if(temporary != NULL){
-        temporary->firstValue = NULL;
-        temporary->length=0;
-        return temporary;
-    }
-    else{
-        printf("Out of memory!");
-        return NULL;
-    }
+headerNodeDigits *createDataStructure(Type type) {
+  headerNodeDigits *temporary =
+      (headerNodeDigits *)malloc(sizeof(headerNodeDigits));
+  if (temporary != NULL) {
+    temporary->firstNode = NULL;
+    temporary->length = 0;
+    temporary->type = type;
+    return temporary;
+  } else {
+    printf("Out of memory!");
+    return NULL;
+  }
 }
 
-void FreeLL(headerNodeDigits* head){
-    if(head == NULL || head->length == 0) return;
-    else{
-        singleDigit* values = head->firstValue;
-        while(values != NULL){
-            singleDigit* valueClean = values;
-            values = values->nextNode;
-            free(valueClean);
-        }
-        free(head);
-    }
+void FreeLL(headerNodeDigits *head) {
+  if (head == NULL || head->length == 0)
     return;
+  else {
+    singleDigit *values = head->firstNode;
+    while (values != NULL) {
+      singleDigit *valueClean = values;
+      values = values->nextNode;
+      free(valueClean);
+    }
+    free(head);
+  }
+  return;
 }
 
-void printValues(headerNodeDigits* head){
-    if(head == NULL || head->length == 0) return;
-    else{
-        singleDigit* node = head->firstValue;
-        while(node != NULL){
-            printf("%d",node->value);
-            node = node->nextNode;
-        }
-    }
+void printRecursively(singleDigit *node){
+  if(node == NULL){
     return;
+  }
+  else{
+    printRecursively(node->nextNode);
+    printf("%d",node->value);
+  }
 }
 
-int main(){
-    headerNodeDigits* value1 = createLL();
-    headerNodeDigits* value2 = createLL();
-    if(!value1 || !value2) return 1;
-    headerNodeDigits* listOfValues[] = {value1,value2};
-    for(int i=0; i<2;i++){
-        int value=0;
-        int length = 0;
-        while(value>=0){
-            singleDigit* lastDigit;
-            printf("Input the digit [0-9] of the %dst value (-1 to exit): ",i+1);
-            scanf("%d",&value);
-            if(value >= 0 && value <10) {
-                length++;
-                if(listOfValues[i]->firstValue == NULL){
-                    lastDigit = (singleDigit*) malloc(sizeof(singleDigit));
-                    if(lastDigit == NULL) {
-                        return 1;
-                    }
-                    else{
-                        lastDigit->nextNode = NULL;
-                        lastDigit->value = value;
-                        listOfValues[i]->firstValue = lastDigit;\
-                    }
-                }
-                else{
-                    singleDigit* var = (singleDigit*) malloc(sizeof(singleDigit));
-                    if(var == NULL){
-                        return 1;
-                    }
-                    else{
-                    var->nextNode = NULL;
-                    var->value = value;
-                    lastDigit->nextNode = var;
-                    lastDigit = var;
-                    }
-                }
+void printValues(headerNodeDigits *head) {
+  if (head == NULL || head->length == 0)
+    return;
+  else {
+    singleDigit *node = head->firstNode;
+    if(head->type == queue){
+      while (node != NULL) {
+        printf("%d", node->value);
+        node = node->nextNode;
+      }
+    }
+    else if(head->type == stack){
+      printRecursively(node);
+    }
+  }
+}
 
-            }
-            else if(value > 9){
-                printf("Input not valid\n");
-            }
+void createNode(headerNodeDigits *header, int value) {
+  if (header == NULL)
+    return;
+  else {
+    singleDigit *newNode = (singleDigit *)malloc(sizeof(singleDigit));
+    if (newNode == NULL)
+      return;
+    singleDigit *var = header->firstNode;
+    if (header->type == queue) {
+      newNode->nextNode = NULL;
+      newNode->value = value;
+      if (var == NULL) {
+        header->firstNode = newNode;
+      } else {
+        while (var->nextNode != NULL) {
+          var = var->nextNode;
         }
-        listOfValues[i]->length = length;
+        var->nextNode = newNode;
+      }
+    } else if (header->type == stack) {
+      newNode->nextNode = var;
+      newNode->value = value;
+      header->firstNode = newNode;
+    }
+    header->length++;
+  }
+}
+
+
+// create a a node that its data structure is stack from the sum of two digits.
+singleDigit *createNodeFrom2Digits(singleDigit *value1, singleDigit *value2,
+                                   int *carry, singleDigit *previousNode) {
+  
+  
+  singleDigit *node = (singleDigit *)malloc(sizeof(singleDigit));
+  if (!node)
+    return NULL;
+  else {
+    int digit1 = (value1 == NULL)? (int) 0 : value1->value;
+    int digit2 = (value2 == NULL)? (int) 0 : value2->value;
+    int sum = digit1 + digit2 + *carry;
+    node->nextNode = previousNode;
+    node->value = sum % 10;
+    *carry = sum / 10;
+    return node;
+  }
+}
+
+headerNodeDigits *sumValuesFromHeaders(headerNodeDigits *header1,
+                                  headerNodeDigits *header2) {
+  if (!header1 || !header2)
+    return NULL;
+
+  int carry = 0;
+
+  singleDigit *current1 = header1->firstNode;
+  singleDigit *current2 = header2->firstNode;
+  singleDigit *prevAnswer = NULL;
+  headerNodeDigits *newHeader = createDataStructure(queue);
+  while (current1 != NULL || current2 != NULL || carry != 0) {
+    prevAnswer = createNodeFrom2Digits(current1, current2, &carry, prevAnswer);
+    newHeader->length++;
+    if(current1 != NULL){
+      current1 = current1->nextNode; 
+    }
+    if(current2 != NULL){
+      current2 = current2->nextNode;
     }
 
-    for(int i =0 ; i<2; i++){
-     printf("\nvalue %d with %d digits: ", i+1,listOfValues[i]->length);
-     printValues(listOfValues[i]);
+  }
+  newHeader->firstNode = prevAnswer;
+  return newHeader;
+}
+
+int main() {
+  headerNodeDigits *value1 = createDataStructure(stack);
+  headerNodeDigits *value2 = createDataStructure(stack);
+  
+  if (!value1 || !value2)
+    return 1;
+  headerNodeDigits *listOfHeaders[2] = {value1,value2};
+  for(int i=0;i<2;i++){
+    int value = 0;
+    while (value >= 0) {
+      printf("Input the digit [0-9] of the %dst value (<0 to exit): ",i+1);
+      scanf("%hd", &value);
+      if (value >= 0 && value < 10) {
+        createNode(listOfHeaders[i], value);
+      } else if (value > 9) {
+        printf("Input not valid");
+      }
     }
+  }
 
 
+  for (int i = 0; i < 2; i++) {
+    printf("\nvalue %d with %d digits: ", i + 1, listOfHeaders[i]->length);
+    printValues(listOfHeaders[i]);
+  }
 
-    for(int i =0 ; i<2; i++){
-     FreeLL(listOfValues[i]);
-    }
+  fflush(stdout);
 
-    return 0;
+  headerNodeDigits *resultSum = sumValuesFromHeaders(listOfHeaders[0], listOfHeaders[1]);
+  printf("\nResult from the sum of value 1 and value 2: ");
+  printValues(resultSum);
+  fflush(stdout);
+  for(int i=0;i<2;i++){
+    FreeLL(listOfHeaders[i]);
+  }
+  FreeLL(resultSum);
+  return 0;
 }
