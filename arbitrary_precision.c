@@ -143,7 +143,7 @@ int main() {
     int value = 0;
     while (value >= 0) {
       printf("Input the digit [0-9] of the %dst value (<0 to exit): ",i+1);
-      scanf("%hd", &value);
+      scanf("%d", &value);
       if (value >= 0 && value < 10) {
         createNode(listOfHeaders[i], value);
       } else if (value > 9) {
